@@ -13,7 +13,6 @@ License:	GPL
 URL:		http://www.fast-info.de/vdr/autotimeredit/
 Source:		http://www.fast-info.de/vdr/autotimeredit/vdr-%plugin-%version.tar.bz2
 Patch1:		http://gentoo.fh-luh.de/files/vdr-autotimeredit/autotimeredit-0.1.8.patch
-BuildRoot:	%{_tmppath}/%{name}-buildroot
 BuildRequires:	vdr-devel >= 1.4.1-6
 Requires:	vdr-abi = %vdr_abi
 
