@@ -2,7 +2,7 @@
 %define plugin	autotimeredit
 %define name	vdr-plugin-%plugin
 %define version	0.1.8
-%define rel	14
+%define rel	15
 
 Summary:	VDR plugin: OSD autotimer edit
 Name:		%name
@@ -13,8 +13,11 @@ License:	GPL
 URL:		http://www.fast-info.de/vdr/autotimeredit/
 Source:		http://www.fast-info.de/vdr/autotimeredit/vdr-%plugin-%version.tar.bz2
 Patch1:		http://gentoo.fh-luh.de/files/vdr-autotimeredit/autotimeredit-0.1.8.patch
+Patch2:		92_autotimeredit-0.1.8-1.5.3.dpatch
+Patch3:		autotimeredit-0.1.8-i18n-1.6.patch
+Patch4:		autotimeredit-0.1.8-vdr-1.6.patch
 BuildRoot:	%{_tmppath}/%{name}-buildroot
-BuildRequires:	vdr-devel >= 1.4.1-6
+BuildRequires:	vdr-devel >= 1.6.0
 Requires:	vdr-abi = %vdr_abi
 
 %description
@@ -24,6 +27,10 @@ for vdradmind via VDR on-screen-display (OSD).
 %prep
 %setup -q -n %plugin-%version
 %patch1 -p4 -b .uint
+%patch2 -p1
+%patch3 -p1
+%patch4 -p1
+%vdr_plugin_prep
 
 # this plugin has somewhat bloated configuration scheme...
 
