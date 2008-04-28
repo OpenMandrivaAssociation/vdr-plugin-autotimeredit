@@ -2,7 +2,7 @@
 %define plugin	autotimeredit
 %define name	vdr-plugin-%plugin
 %define version	0.1.8
-%define rel	15
+%define rel	16
 
 Summary:	VDR plugin: OSD autotimer edit
 Name:		%name
