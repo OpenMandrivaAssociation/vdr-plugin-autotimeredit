@@ -42,7 +42,7 @@ for vdradmind via VDR on-screen-display (OSD).
 # Autotimer-file (same for vdradmind!)
 var=AUTOTIMER_FILE
 param="-f AUTOTIMER_FILE"
-default=%{_localstatedir}/vdradmin/vdradmind.at
+default=%{_localstatedir}/lib/vdradmin/vdradmind.at
 # Hide the file from setup-menu
 var=HIDE_AUTOTIMER_FILE
 param="--ns_autotimerfile"
@@ -59,7 +59,7 @@ param=--ns_update_method
 # Script/Config-file for force update autotimer
 var=FORCE_UPDATE_FILE
 param="-u FORCE_UPDATE_FILE"
-default=%{_localstatedir}/vdradmin/vdradmind.conf
+default=%{_localstatedir}/lib/vdradmin/vdradmind.conf
 # Hide the vdradminupdate-file form setup-menu
 var=HIDE_FORCE_UPDATE_FILE
 param="--ns_vdradminupdate"
