@@ -4,6 +4,9 @@
 %define version	0.1.8
 %define rel	16
 
+# backportability
+%define _localstatedir %{_var}
+
 Summary:	VDR plugin: OSD autotimer edit
 Name:		%name
 Version:	%version
