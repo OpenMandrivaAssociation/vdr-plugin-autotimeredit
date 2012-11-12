@@ -1,0 +1,3174 @@
+
+This is a semi-automatically created i18n adaptation patch and may contain
+errors (such as missing translations). This should only be used as a
+temporary measure until the upstream plugin maintainer fixes the plugin
+properly according to the instructions in i18n-to-gettext.pl.
+
+Created for Mandriva Linux packaging by Anssi Hannula <anssi@mandriva.org>.
+
+
+Index: autotimeredit-0.1.8/Makefile
+===================================================================
+--- autotimeredit-0.1.8/Makefile
++++ autotimeredit-0.1.8/Makefile	2008-04-16 14:00:09.000000000 +0300
+@@ -57,7 +57,7 @@
+ 
+ ### The object files (add further files here):
+ 
+-OBJS = $(PLUGIN).o i18n.o autotimers.o ddictionary.o menueditweekdays.o menuautotimer.o menudictionary.o menusetup.o update.o vdrtools.o
++OBJS = $(PLUGIN).o  autotimers.o ddictionary.o menueditweekdays.o menuautotimer.o menudictionary.o menusetup.o update.o vdrtools.o
+ ifeq ($(shell test $(VDRVERSNUM) -lt 10305 ; echo $$?),0)
+   OBJS += menueditbit.o
+ endif
+@@ -79,9 +79,34 @@
+ 
+ -include $(DEPFILE)
+ 
++### Internationalization (I18N):
++
++PODIR     = po
++LOCALEDIR = $(VDRDIR)/locale
++I18Npo    = $(wildcard $(PODIR)/*.po)
++I18Nmsgs  = $(addprefix $(LOCALEDIR)/, $(addsuffix /LC_MESSAGES/vdr-$(PLUGIN).mo, $(notdir $(foreach file, $(I18Npo), $(basename $(file))))))
++I18Npot   = $(PODIR)/$(PLUGIN).pot
++
++%.mo: %.po
++	msgfmt -c -o $@ $<
++
++$(I18Npot): $(wildcard *.[ch] *.[ch]xx *.cc *.[ch]pp *.hh)
++	xgettext -C -cTRANSLATORS --no-wrap --no-location -k -ktr -ktrNOOP --msgid-bugs-address='<http://qa.mandriva.com/>' -o $@ $^
++
++%.po: $(I18Npot)
++	msgmerge -U --no-wrap --no-location --backup=none -q $@ $<
++	@touch $@
++
++$(I18Nmsgs): $(LOCALEDIR)/%/LC_MESSAGES/vdr-$(PLUGIN).mo: $(PODIR)/%.mo
++	@mkdir -p $(dir $@)
++	cp $< $@
++
++.PHONY: i18n
++i18n: $(I18Nmsgs)
++
+ ### Targets:
+ 
+-all: libvdr-$(PLUGIN).so
++all: libvdr-$(PLUGIN).so i18n
+ 
+ libvdr-$(PLUGIN).so: $(OBJS)
+ 	$(CXX) $(CXXFLAGS) -shared $(OBJS) -o $@
+@@ -96,4 +121,5 @@
+ 	@echo Distribution package created as $(PACKAGE).tgz
+ 
+ clean:
++	@-rm -f $(PODIR)/*.mo $(PODIR)/*.pot
+ 	@-rm -f $(OBJS) $(DEPFILE) *.so *.tgz core* *~
+Index: autotimeredit-0.1.8/autotimeredit.c
+===================================================================
+--- autotimeredit-0.1.8/autotimeredit.c
++++ autotimeredit-0.1.8/autotimeredit.c	2008-04-16 14:00:09.000000000 +0300
+@@ -17,10 +17,10 @@
+ #include "menuautotimer.h"
+ #include "menusetup.h"
+ #include "vdrtools.h"
+-#include "i18n.h"
++
+ 
+ static const char *VERSION           = "0.1.8";
+-static const char *DESCRIPTION       = "OSD autotimer edit";
++static const char *DESCRIPTION       = trNOOP("OSD autotimer edit");
+ 
+ // Global variables that control the overall behaviour:
+ 
+@@ -721,7 +721,7 @@
+ bool cPluginAutoTimer::Start(void)
+ {
+   // Start any background activities the plugin shall perform.
+-  RegisterI18n(Phrases);
++  
+   TestAndSetOSDLanguage();
+ 
+ #ifdef ATE_Debug2
+Index: autotimeredit-0.1.8/autotimers.c
+===================================================================
+--- autotimeredit-0.1.8/autotimers.c
++++ autotimeredit-0.1.8/autotimers.c	2008-04-16 14:00:09.000000000 +0300
+@@ -9,7 +9,7 @@
+ #include "autotimeredit.h"
+ #include "autotimers.h"
+ #include "vdrtools.h"
+-#include "i18n.h"
++
+ #include <ctype.h>
+ #include <stropts.h>
+ #include <signal.h>
+Index: autotimeredit-0.1.8/i18n.c
+===================================================================
+--- autotimeredit-0.1.8/i18n.c
++++ autotimeredit-0.1.8/i18n.c	2008-04-16 14:00:09.000000000 +0300
+@@ -1,1652 +0,0 @@
+-/*
+- * autotimeredit: A plugin for the Video Disk Recorder
+- *
+- * See the README file for copyright information and how to reach the author.
+- *
+- * $Id: i18n.c 1.7 2005/10/19 23:22:17 hflor Exp $
+- */
+-
+-#include "i18n.h"
+-
+-const tI18nPhrase Phrases[] = {
+-  // DESCRIPTION
+-  { "OSD autotimer edit",
+-    "OSD AutoTimer bearbeiten",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "Traiter l'autoprogrammation",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Choise$always",
+-    "immer",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "toujours",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Choise$both Times",
+-    "beide Zeiten",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "les deux temps",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Choise$bottom",
+-    "unten",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "en bas",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Choise$hidden",
+-    "versteckt",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "caché",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Choise$never",
+-    "nie",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "jamais",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Choise$none",
+-    "keine",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "pas de",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Choise$only start",
+-    "nur bei Start",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "seulement au démarrage",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Choise$question",
+-    "nach Frage",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "après la question",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Choise$restart script",
+-    "Script für Neustart",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "redémarrage",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Choise$shown",
+-    "angezeigt",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "affiché",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Choise$single",
+-    "einmalig",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "",// TODO Français
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Choise$start Time",
+-    "Startzeit",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "heures de départ",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Choise$stop Time",
+-    "Endzeit",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "heures de fin",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Choise$top",
+-    "oben",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "en haut",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Choise$top and bottom",
+-    "oben und unten",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "en haut et en bas",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Choise$vdradmind sighup",
+-    "vdradmind HUP-Signal",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "vdradmind signal HUP",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Choise$webpage",
+-    "Webseite",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "page internet",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Choise$xxv sighup",
+-    "xxv HUP-Signal",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "xxv signal HUP",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Display$AutoTimers",
+-    "Autotimer",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "Autoprogrammeur",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Display$DefaultDictionary",
+-    "Auswahlverzeichnisse",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "listes de choix",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  // one letter for autotimer-list (Title)
+-  { "Display1$T",
+-    "T",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "T",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  // one letter for autotimer-list (Subtitle)
+-  { "Display2$S",
+-    "U",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "S",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  // one letter for autotimer-list (Description)
+-  { "Display3$D",
+-    "B",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "D",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  // one letter for autotimer-list (Except repeat)
+-  { "Display4$R",
+-    "W",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "R",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  // one letter for autotimer-list (use choise for weekdays)
+-  { "Display5$W",
+-    "T",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "",// TODO Français
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Delete Autotimer?",
+-    "Autotimer löschen?",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "effacer l'autoprogrammeur?",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Delete Default Dictionary?",
+-    "Auswahlverzeichnis löschen?",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "effacer la liste de choix?",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Dictionary for Record",
+-    "Verzeichnis für Aufnahme",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "la liste pour l'enregistrement",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Dictionary for Record <>",
+-    "Verzeichnis für Aufnahme <>",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "la liste pour l'enregistrement <>",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Edit Autotimer",
+-    "Autotimer bearbeiten",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "Traiter l'autoprogammeur",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Edit DefaultDictionary",
+-    "Auswahlverzeichnisse bearbeiten",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "traiter liste de choix",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Entrytyp",
+-    "Eintragstyp",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "type d'inscription",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Episode record",
+-    "Serienaufnahme",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "enregistrement de séries",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Except repeat",
+-    "Wiederholung ausschließen",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "exclure les répétitions",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Force search update manual now ...",
+-    "Sofort jetzt neue Suche durchführen ...",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "exécuter une recherche tout de suite ...",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Include Subdictionarys",
+-    "Unterverzeichnisse einschließen",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "Inclure sous-listes",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Input",
+-    "Eingabe",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "Entré",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Search in Description",
+-    "Suche in Beschreibung",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "recherche dans la description",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Search in Subtitle",
+-    "Suche in Untertitel",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "recherche dans le sous-titre",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Search in Title",
+-    "Suche in Titel",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "recherche dans le titre",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$  Search start Time",
+-    "  Startzeit der Suche",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "  Heure de démarrage de la recherche",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$  Search stop Time",
+-    "  Endzeit der Suche",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "  Heure final de la recherche",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Search Text",
+-    "Suchtext",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "texte de recherche",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Search text to small - use anyway?",
+-    "Suchtext ist zu kurz - trotzdem verwenden?",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "texte de recherche est trop court - l'utiliser malgré tout?",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Select",
+-    "Auswahl",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "le choix",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Start search update now ...",
+-    "Suchupdate wird gestartet ...",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "la mise à jour de recherche est lancée ...",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Start search update now?",
+-    "Suchupdate jetzt starten?",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "commencer la mise à jour de recherche maintenant?",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Use Channel select",
+-    "Senderwahl benutzen",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "utiliser le choix d'émetteur",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Use start/stop Time",
+-    "Benutzung Start/Ende",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "l'utilisation démarrage/fin",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Edit$Weekdays for search",
+-    "Wochentag(e) für Suche",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "",// TODO Français
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Error$Missing dictionary!",
+-    "Verzeichnis fehlt!",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "la liste est absente!",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Error$Missing search text!",
+-    "Suchtext fehlt",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "le texte de recherche est absent",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Error$no access to config file",
+-    "Kein Zugriff auf Datei für Konfiguration",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "pas d'accès au fichier de configuration",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Error$no access to update script",
+-    "Kein Zugriff auf Datei für Update-Script",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "pas d'accès au fichier-scripts pour mise à jour",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Error$Not all requied parameters in config file found",
+-    "Nicht alle erforderlichen Parameter in der Datei",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "Des paramètres manquant dans le fichier",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Error$search update is runing",
+-    "Suchupdate läuft bereits",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "la mise à jour de recherche est déjà en court",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Error$update script is not executable",
+-    "Update-Script ist nicht ausführbar",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "lie scrit de mise à jour n'est pas exécutable",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Error$vdradmind is not running on this machine",
+-    "vdradmind läuft nicht auf dieser Maschine",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "vdradmind ne tourne pas sur cette machine",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Error$xxv is not running on this machine",
+-    "xxv läuft nicht auf dieser Maschine",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "xxv ne tourne pas sur cette machine",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$*Default dictionary from records",
+-    "*Auswahlverzeichnisse von Aufnahmen",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "les listes de choix d'enregistrement",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$  *Sources for default dictionary ...",
+-    "  *Quelle für Auswahlverzeichnisse ...",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "  Source pour la listes de choix par défaut …",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$  ... Autotimers",
+-    "  ... Autotimer",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "  … autoprogrammeur",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$  ... Commandline",
+-    "  ... Komandozeile",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "  … ligne de commande",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$  ... Records",
+-    "  ... Aufnahmen",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "  … enregistrements",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$  ... Setup list",
+-    "  ... Setup-Liste",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "  … liste de configuration",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$  ... Timers",
+-    "  ... Timer",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "  … Timers",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$  After change force new search",
+-    "  Nach Änderungen manuelle Suche",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "  après modification recherche manuelle",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$Autotimer with weekdays (am 3.4.1)",
+-    "Autotimer mit Wochentag (am 3.4.1)",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "",// TODO Français
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$Configure default dictionary",
+-    "Auswahlverzeichnisse einstellen",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "Changer la liste de choix",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$    Display bottom update ex lines",
+-    "    Untere Zeile ab x Einträgen",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "    ligne inférieure à partir x entrées",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$Edit Autotimer now",
+-    "Autotimer jetzt bearbeiten",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "Traiter l'autoprogrammeur maintenant",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$Except repeat Feature (bigpatch 0.9)",
+-    "Wiederholungsausschluß (BigPatch)",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "exclusion de répétition (BigPatch)",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  // comment at end of setings (\n allowed)
+-  { "Setup$For this plugin is vdradmind or xxv requiered!\nIn the config of vdradmind must the autotimer-function be enabled.",
+-    "Für dieses Plugin wird vdradmind oder xxv benötigt!\nDort muß auch die Funktion für den Autotimer eingeschaltet werden.",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "Pour ce plugin vdradmind/xxv est nécessaire!\nLà, on doit enclencher la fonction pour l'autoprogrammeur.",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$Method for manual search update",
+-    "Methode für Aktualisierungssuche",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "méthode de recherche pour la mise à jour",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$minimum search text length",
+-    "minimale Länge des Suchtextes",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "longueur minimale du texte de recherche",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$Modify dictionarys list",
+-    "Verzeichnissliste bearbeiten",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "Traiter la liste",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$  Name for Mainmenu",
+-    "  Eintragname im Hauptmenü",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "  nom dans le menu principal",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$Now force search update",
+-    "Sofort neue Suche durchführen",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "exécuter nouvelle recherche tout de suite",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$  Path for config file",
+-    "  Updatekonfigurationdatei",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "  fichier de configuration de mise à jour",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$  Path for update script",
+-    "  Update-Script",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "  chemin du scripte de mise à jour",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$Path for vdradmind.at",
+-    "Pfad zur vdradmind.at",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "chemin de vdradmind.at",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$Preferr Command Line Parameter",
+-    "Kommandozeile hat Vorrang",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "ligne de commande est prioritaire",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$Remove extensions from file?",
+-    "Erweiterung(en) aus Datei löschen?",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "",// TODO Français
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$Setup List Format",
+-    "Listenformat ändern",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "modifier le format de liste",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$  Show Channel",
+-    "  Anzeige Kanal",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "  affichage de la chaîne",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$  Show Flags",
+-    "  Anzeige der Suchorte",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "  affichage du chemin de recherche",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$  Show start/stop Time",
+-    "  Anzeige Start-/Stopzeit",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "  affichage de l'heure de départ/fin",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$    Time for update records",
+-    "    Aktualisierung der Liste",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "    mise à jour de la liste",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$  Time for update records",
+-    "  Aktualisierung der Liste",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "  mise à jour de la liste",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$    Time for update records (hour)",
+-    "    Stunden für Aktualisierung Liste",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "    heures pour la mise à jour de la liste",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$  Time for update records (hour)",
+-    "  Stunden für Aktualisierung Liste",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "  heures pour la mise à jour de la liste",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$  Updateline position",
+-    "  Position für Aktualisierungszeile",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "  position pour ligne de mise à jour",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$    Use Channelname",
+-    "    Kanalnamen verwenden",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "    utiliser nom de canal",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$Verbose Log Mode",
+-    "Ausführliche Protokollierung",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "enregistrement détaillé du protocole",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { "Setup$Visible in Mainmenu",
+-    "Im Hauptmenü sichtbar",
+-    "",// TODO Slovenski
+-    "",// TODO Italiano
+-    "",// TODO Nederlands
+-    "",// TODO Português
+-    "Visible dans le menu principal",
+-    "",// TODO Norsk
+-    "",// TODO suomi
+-    "",// TODO Polski
+-    "",// TODO Español
+-    "",// TODO Ellinika
+-    "",// TODO Svenska
+-    "",// TODO Romaneste
+-    "",// TODO Magyar
+-    "",// TODO Català
+-  },
+-  { NULL }
+-  };
+Index: autotimeredit-0.1.8/i18n.h
+===================================================================
+--- autotimeredit-0.1.8/i18n.h
++++ autotimeredit-0.1.8/i18n.h	2008-04-16 14:00:09.000000000 +0300
+@@ -1,16 +0,0 @@
+-/*
+- * autotimeredit: A plugin for the Video Disk Recorder
+- *
+- * See the README file for copyright information and how to reach the author.
+- *
+- * $Id: i18n.h 1.0 2004/04/05 13:36:00 hflor Exp $
+- */
+-
+-#ifndef _I18N__H
+-#define _I18N__H
+-
+-#include <vdr/i18n.h>
+-
+-extern const tI18nPhrase Phrases[];
+-
+-#endif //_I18N__H
+Index: autotimeredit-0.1.8/menuautotimer.c
+===================================================================
+--- autotimeredit-0.1.8/menuautotimer.c
++++ autotimeredit-0.1.8/menuautotimer.c	2008-04-16 14:00:09.000000000 +0300
+@@ -24,7 +24,7 @@
+   #include "menuedittime.h"
+ #endif
+ #include "menueditweekdays.h"
+-#include "i18n.h"
++
+ #include "vdrtools.h"
+ // --- cMenuEditAutoTimer --------------------------------------------------------
+ 
+Index: autotimeredit-0.1.8/menudictionary.c
+===================================================================
+--- autotimeredit-0.1.8/menudictionary.c
++++ autotimeredit-0.1.8/menudictionary.c	2008-04-16 14:00:09.000000000 +0300
+@@ -9,7 +9,7 @@
+ #include "autotimeredit.h"
+ #include "ddictionary.h"
+ #include "menudictionary.h"
+-#include "i18n.h"
++
+ #include "vdrtools.h"
+ // --- cMenuEditDictionary --------------------------------------------------------
+ 
+Index: autotimeredit-0.1.8/menusetup.c
+===================================================================
+--- autotimeredit-0.1.8/menusetup.c
++++ autotimeredit-0.1.8/menusetup.c	2008-04-16 14:00:09.000000000 +0300
+@@ -12,7 +12,7 @@
+ #include "menudictionary.h"
+ #include "menusetup.h"
+ #include "vdrtools.h"
+-#include "i18n.h"
++
+ #if VDRVERSNUM < 10305
+   #include "menueditbit.h"
+ #endif
+@@ -241,7 +241,7 @@
+           updatetimerecords.u++;
+           display_int = false;
+         }
+-        Add(new cMenuEditStraItem(tr(display_defaultdictionary ? "Setup$    Time for update records" : "Setup$  Time for update records"), &updatetimerecords.u, 3, RecordsUpdateTime));
++        Add(new cMenuEditStraItem(tr(display_defaultdictionary ? "Setup$    Time for update records" : trNOOP("Setup$  Time for update records")), &updatetimerecords.u, 3, RecordsUpdateTime));
+       } else {
+         if (!display_int) {
+           updatetimerecords.u--;
+Index: autotimeredit-0.1.8/po/autotimeredit.pot
+===================================================================
+--- autotimeredit-0.1.8/po/autotimeredit.pot
++++ autotimeredit-0.1.8/po/autotimeredit.pot	2008-04-16 14:00:09.000000000 +0300
+@@ -0,0 +1,444 @@
++# SOME DESCRIPTIVE TITLE.
++# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
++# This file is distributed under the same license as the PACKAGE package.
++# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
++#
++#, fuzzy
++msgid ""
++msgstr ""
++"Project-Id-Version: PACKAGE VERSION\n"
++"Report-Msgid-Bugs-To: http://qa.mandriva.com/\n"
++"POT-Creation-Date: 2008-04-16 14:00+0300\n"
++"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
++"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
++"Language-Team: LANGUAGE <LL@li.org>\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=CHARSET\n"
++"Content-Transfer-Encoding: 8bit\n"
++
++#: autotimeredit.c:23
++msgid "OSD autotimer edit"
++msgstr ""
++
++#: autotimeredit.c:364
++msgid "no"
++msgstr ""
++
++#: autotimeredit.c:365
++msgid "yes"
++msgstr ""
++
++#: autotimeredit.c:366
++msgid "Choise$single"
++msgstr ""
++
++#: autotimeredit.c:367 autotimeredit.c:371 autotimeredit.c:375
++msgid "Choise$none"
++msgstr ""
++
++#: autotimeredit.c:368
++msgid "Choise$start Time"
++msgstr ""
++
++#: autotimeredit.c:369
++msgid "Choise$stop Time"
++msgstr ""
++
++#: autotimeredit.c:370
++msgid "Choise$both Times"
++msgstr ""
++
++#: autotimeredit.c:372
++msgid "Choise$top"
++msgstr ""
++
++#: autotimeredit.c:373
++msgid "Choise$bottom"
++msgstr ""
++
++#: autotimeredit.c:374
++msgid "Choise$top and bottom"
++msgstr ""
++
++#: autotimeredit.c:376
++msgid "Choise$webpage"
++msgstr ""
++
++#: autotimeredit.c:377
++msgid "Choise$restart script"
++msgstr ""
++
++#: autotimeredit.c:378
++msgid "Choise$vdradmind sighup"
++msgstr ""
++
++#: autotimeredit.c:379
++msgid "Choise$xxv sighup"
++msgstr ""
++
++#: autotimeredit.c:380
++msgid "Choise$never"
++msgstr ""
++
++#: autotimeredit.c:381
++msgid "Choise$question"
++msgstr ""
++
++#: autotimeredit.c:382 autotimeredit.c:384
++msgid "Choise$always"
++msgstr ""
++
++#: autotimeredit.c:383
++msgid "Choise$only start"
++msgstr ""
++
++#: autotimers.c:374
++msgid "Error$no access to config file"
++msgstr ""
++
++#: autotimers.c:381
++msgid "Error$Not all requied parameters in config file found"
++msgstr ""
++
++#: autotimers.c:390
++msgid "Error$no access to update script"
++msgstr ""
++
++#: autotimers.c:397
++msgid "Error$update script is not executable"
++msgstr ""
++
++#: autotimers.c:405 menusetup.c:338
++msgid "Error$vdradmind is not running on this machine"
++msgstr ""
++
++#: autotimers.c:413 menusetup.c:340
++msgid "Error$xxv is not running on this machine"
++msgstr ""
++
++#: autotimers.c:433
++msgid "Error$search update is runing"
++msgstr ""
++
++#: autotimers.c:441
++msgid "Edit$Start search update now ..."
++msgstr ""
++
++#: menuautotimer.c:32
++msgid "Edit$Edit Autotimer"
++msgstr ""
++
++#: menuautotimer.c:77
++msgid "Channel"
++msgstr ""
++
++#: menuautotimer.c:79 menuautotimer.c:81
++msgid "Active"
++msgstr ""
++
++#: menuautotimer.c:82
++msgid "Edit$Search Text"
++msgstr ""
++
++#: menuautotimer.c:83
++msgid "Edit$Search in Title"
++msgstr ""
++
++#: menuautotimer.c:84
++msgid "Edit$Search in Subtitle"
++msgstr ""
++
++#: menuautotimer.c:85
++msgid "Edit$Search in Description"
++msgstr ""
++
++#: menuautotimer.c:87
++msgid "Edit$Weekdays for search"
++msgstr ""
++
++#: menuautotimer.c:88
++msgid "Edit$Use start/stop Time"
++msgstr ""
++
++#: menuautotimer.c:90
++msgid "Edit$  Search start Time"
++msgstr ""
++
++#: menuautotimer.c:92
++msgid "Edit$  Search stop Time"
++msgstr ""
++
++#: menuautotimer.c:93
++msgid "Edit$Use Channel select"
++msgstr ""
++
++#: menuautotimer.c:98 menudictionary.c:55
++msgid "Edit$Dictionary for Record <>"
++msgstr ""
++
++#: menuautotimer.c:100 menudictionary.c:57
++msgid "Edit$Dictionary for Record"
++msgstr ""
++
++#: menuautotimer.c:101
++msgid "Edit$Episode record"
++msgstr ""
++
++#: menuautotimer.c:103
++msgid "Edit$Except repeat"
++msgstr ""
++
++#: menuautotimer.c:104
++msgid "Priority"
++msgstr ""
++
++#: menuautotimer.c:105
++msgid "Lifetime"
++msgstr ""
++
++#: menuautotimer.c:144
++msgid "Error$Missing search text!"
++msgstr ""
++
++#: menuautotimer.c:152
++msgid "*** Invalid Channel ***"
++msgstr ""
++
++#: menuautotimer.c:156
++msgid "Edit$Search text to small - use anyway?"
++msgstr ""
++
++#: menuautotimer.c:232 menudictionary.c:156
++msgid "Edit$Input"
++msgstr ""
++
++#: menuautotimer.c:234 menudictionary.c:158
++msgid "Edit$Select"
++msgstr ""
++
++#: menuautotimer.c:277
++msgid "Display1$T"
++msgstr ""
++
++#: menuautotimer.c:278
++msgid "Display2$S"
++msgstr ""
++
++#: menuautotimer.c:279
++msgid "Display3$D"
++msgstr ""
++
++#: menuautotimer.c:280
++msgid "Display4$R"
++msgstr ""
++
++#: menuautotimer.c:281
++msgid "Display5$W"
++msgstr ""
++
++#: menuautotimer.c:313
++msgid "Display$AutoTimers"
++msgstr ""
++
++#: menuautotimer.c:351 menudictionary.c:228
++msgid "Delete"
++msgstr ""
++
++#: menuautotimer.c:351 menudictionary.c:228
++msgid "Edit"
++msgstr ""
++
++#: menuautotimer.c:351 menuautotimer.c:353 menudictionary.c:228
++#: menudictionary.c:230
++msgid "New"
++msgstr ""
++
++#: menuautotimer.c:351 menudictionary.c:228
++msgid "On/Off"
++msgstr ""
++
++#: menuautotimer.c:384
++msgid "Edit$Delete Autotimer?"
++msgstr ""
++
++#: menuautotimer.c:442 menuautotimer.c:446
++msgid "Edit$Force search update manual now ..."
++msgstr ""
++
++#: menuautotimer.c:517
++msgid "Edit$Start search update now?"
++msgstr ""
++
++#: menudictionary.c:17
++msgid "Edit$Edit DefaultDictionary"
++msgstr ""
++
++#: menudictionary.c:50
++msgid "Choise$hidden"
++msgstr ""
++
++#: menudictionary.c:50
++msgid "Choise$shown"
++msgstr ""
++
++#: menudictionary.c:50
++msgid "Edit$Entrytyp"
++msgstr ""
++
++#: menudictionary.c:52
++msgid "Edit$Include Subdictionarys"
++msgstr ""
++
++#: menudictionary.c:97
++msgid "Error$Missing dictionary!"
++msgstr ""
++
++#: menudictionary.c:208
++msgid "Display$DefaultDictionary"
++msgstr ""
++
++#: menudictionary.c:261
++msgid "Edit$Delete Default Dictionary?"
++msgstr ""
++
++#: menusetup.c:182
++msgid "Setup$Edit Autotimer now"
++msgstr ""
++
++#: menusetup.c:184
++msgid "Setup$Preferr Command Line Parameter"
++msgstr ""
++
++#: menusetup.c:187
++msgid "Setup$Path for vdradmind.at"
++msgstr ""
++
++#: menusetup.c:190
++msgid "Setup$minimum search text length"
++msgstr ""
++
++#: menusetup.c:192
++msgid "Setup$Except repeat Feature (bigpatch 0.9)"
++msgstr ""
++
++#: menusetup.c:194
++msgid "Setup$Autotimer with weekdays (am 3.4.1)"
++msgstr ""
++
++#: menusetup.c:196
++msgid "Setup$Visible in Mainmenu"
++msgstr ""
++
++#: menusetup.c:198
++msgid "Setup$  Name for Mainmenu"
++msgstr ""
++
++#: menusetup.c:200
++msgid "Setup$Verbose Log Mode"
++msgstr ""
++
++#: menusetup.c:203
++msgid "Setup$Setup List Format"
++msgstr ""
++
++#: menusetup.c:206
++msgid "Setup$  Show Flags"
++msgstr ""
++
++#: menusetup.c:208
++msgid "Setup$  Show Channel"
++msgstr ""
++
++#: menusetup.c:210
++msgid "Setup$    Use Channelname"
++msgstr ""
++
++#: menusetup.c:212
++msgid "Setup$  Show start/stop Time"
++msgstr ""
++
++#: menusetup.c:216
++msgid "Setup$Configure default dictionary"
++msgstr ""
++
++#: menusetup.c:220 menusetup.c:224
++msgid "Setup$*Default dictionary from records"
++msgstr ""
++
++#: menusetup.c:230 menusetup.c:234
++msgid "Setup$  *Sources for default dictionary ..."
++msgstr ""
++
++#: menusetup.c:236
++msgid "Setup$  ... Records"
++msgstr ""
++
++#: menusetup.c:244
++msgid "Setup$    Time for update records"
++msgstr ""
++
++#: menusetup.c:244
++msgid "Setup$  Time for update records"
++msgstr ""
++
++#: menusetup.c:250
++msgid "Setup$    Time for update records (hour)"
++msgstr ""
++
++#: menusetup.c:254
++msgid "Setup$  ... Autotimers"
++msgstr ""
++
++#: menusetup.c:255
++msgid "Setup$  ... Timers"
++msgstr ""
++
++#: menusetup.c:256
++msgid "Setup$  ... Commandline"
++msgstr ""
++
++#: menusetup.c:257
++msgid "Setup$  ... Setup list"
++msgstr ""
++
++#: menusetup.c:261
++msgid "Setup$Method for manual search update"
++msgstr ""
++
++#: menusetup.c:264
++msgid "Setup$  Path for config file"
++msgstr ""
++
++#: menusetup.c:268
++msgid "Setup$  Path for update script"
++msgstr ""
++
++#: menusetup.c:271
++msgid "Setup$  Updateline position"
++msgstr ""
++
++#: menusetup.c:273
++msgid "Setup$    Display bottom update ex lines"
++msgstr ""
++
++#: menusetup.c:275
++msgid "Setup$  After change force new search"
++msgstr ""
++
++#: menusetup.c:277
++msgid "Setup$Now force search update"
++msgstr ""
++
++#: menusetup.c:279
++msgid "Setup$Modify dictionarys list"
++msgstr ""
++
++#: menusetup.c:287 menusetup.c:297
++msgid ""
++"Setup$For this plugin is vdradmind or xxv requiered!\n"
++"In the config of vdradmind must the autotimer-function be enabled."
++msgstr ""
++
++#: menusetup.c:410
++msgid "Setup$Remove extensions from file?"
++msgstr ""
+Index: autotimeredit-0.1.8/po/de_DE.po
+===================================================================
+--- autotimeredit-0.1.8/po/de_DE.po
++++ autotimeredit-0.1.8/po/de_DE.po	2008-04-16 14:00:09.000000000 +0300
+@@ -0,0 +1,443 @@
++# VDR autotimeredit plugin language source file.
++# Copyright (C) YEAR THE VDR-autotimeredit'S COPYRIGHT HOLDER
++# This file is distributed under the same license as the VDR-autotimeredit package.
++# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
++#
++msgid ""
++msgstr ""
++"Project-Id-Version: VDR-autotimeredit\n"
++"Report-Msgid-Bugs-To: http://qa.mandriva.com/\n"
++"POT-Creation-Date: 2008-04-16 14:00+0300\n"
++"PO-Revision-Date: 2008-04-16 14:00+0300\n"
++"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
++"Language-Team: <vdr@linuxtv.org>\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=ISO-8859-15\n"
++"Content-Transfer-Encoding: 8bit\n"
++
++#: autotimeredit.c:23
++msgid "OSD autotimer edit"
++msgstr "OSD AutoTimer bearbeiten"
++
++#: autotimeredit.c:364
++msgid "no"
++msgstr ""
++
++#: autotimeredit.c:365
++msgid "yes"
++msgstr ""
++
++#: autotimeredit.c:366
++msgid "Choise$single"
++msgstr "einmalig"
++
++#: autotimeredit.c:367 autotimeredit.c:371 autotimeredit.c:375
++msgid "Choise$none"
++msgstr "keine"
++
++#: autotimeredit.c:368
++msgid "Choise$start Time"
++msgstr "Startzeit"
++
++#: autotimeredit.c:369
++msgid "Choise$stop Time"
++msgstr "Endzeit"
++
++#: autotimeredit.c:370
++msgid "Choise$both Times"
++msgstr "beide Zeiten"
++
++#: autotimeredit.c:372
++msgid "Choise$top"
++msgstr "oben"
++
++#: autotimeredit.c:373
++msgid "Choise$bottom"
++msgstr "unten"
++
++#: autotimeredit.c:374
++msgid "Choise$top and bottom"
++msgstr "oben und unten"
++
++#: autotimeredit.c:376
++msgid "Choise$webpage"
++msgstr "Webseite"
++
++#: autotimeredit.c:377
++msgid "Choise$restart script"
++msgstr "Script für Neustart"
++
++#: autotimeredit.c:378
++msgid "Choise$vdradmind sighup"
++msgstr "vdradmind HUP-Signal"
++
++#: autotimeredit.c:379
++msgid "Choise$xxv sighup"
++msgstr "xxv HUP-Signal"
++
++#: autotimeredit.c:380
++msgid "Choise$never"
++msgstr "nie"
++
++#: autotimeredit.c:381
++msgid "Choise$question"
++msgstr "nach Frage"
++
++#: autotimeredit.c:382 autotimeredit.c:384
++msgid "Choise$always"
++msgstr "immer"
++
++#: autotimeredit.c:383
++msgid "Choise$only start"
++msgstr "nur bei Start"
++
++#: autotimers.c:374
++msgid "Error$no access to config file"
++msgstr "Kein Zugriff auf Datei für Konfiguration"
++
++#: autotimers.c:381
++msgid "Error$Not all requied parameters in config file found"
++msgstr "Nicht alle erforderlichen Parameter in der Datei"
++
++#: autotimers.c:390
++msgid "Error$no access to update script"
++msgstr "Kein Zugriff auf Datei für Update-Script"
++
++#: autotimers.c:397
++msgid "Error$update script is not executable"
++msgstr "Update-Script ist nicht ausführbar"
++
++#: autotimers.c:405 menusetup.c:338
++msgid "Error$vdradmind is not running on this machine"
++msgstr "vdradmind läuft nicht auf dieser Maschine"
++
++#: autotimers.c:413 menusetup.c:340
++msgid "Error$xxv is not running on this machine"
++msgstr "xxv läuft nicht auf dieser Maschine"
++
++#: autotimers.c:433
++msgid "Error$search update is runing"
++msgstr "Suchupdate läuft bereits"
++
++#: autotimers.c:441
++msgid "Edit$Start search update now ..."
++msgstr "Suchupdate wird gestartet ..."
++
++#: menuautotimer.c:32
++msgid "Edit$Edit Autotimer"
++msgstr "Autotimer bearbeiten"
++
++#: menuautotimer.c:77
++msgid "Channel"
++msgstr ""
++
++#: menuautotimer.c:79 menuautotimer.c:81
++msgid "Active"
++msgstr ""
++
++#: menuautotimer.c:82
++msgid "Edit$Search Text"
++msgstr "Suchtext"
++
++#: menuautotimer.c:83
++msgid "Edit$Search in Title"
++msgstr "Suche in Titel"
++
++#: menuautotimer.c:84
++msgid "Edit$Search in Subtitle"
++msgstr "Suche in Untertitel"
++
++#: menuautotimer.c:85
++msgid "Edit$Search in Description"
++msgstr "Suche in Beschreibung"
++
++#: menuautotimer.c:87
++msgid "Edit$Weekdays for search"
++msgstr "Wochentag(e) für Suche"
++
++#: menuautotimer.c:88
++msgid "Edit$Use start/stop Time"
++msgstr "Benutzung Start/Ende"
++
++#: menuautotimer.c:90
++msgid "Edit$  Search start Time"
++msgstr "  Startzeit der Suche"
++
++#: menuautotimer.c:92
++msgid "Edit$  Search stop Time"
++msgstr "  Endzeit der Suche"
++
++#: menuautotimer.c:93
++msgid "Edit$Use Channel select"
++msgstr "Senderwahl benutzen"
++
++#: menuautotimer.c:98 menudictionary.c:55
++msgid "Edit$Dictionary for Record <>"
++msgstr "Verzeichnis für Aufnahme <>"
++
++#: menuautotimer.c:100 menudictionary.c:57
++msgid "Edit$Dictionary for Record"
++msgstr "Verzeichnis für Aufnahme"
++
++#: menuautotimer.c:101
++msgid "Edit$Episode record"
++msgstr "Serienaufnahme"
++
++#: menuautotimer.c:103
++msgid "Edit$Except repeat"
++msgstr "Wiederholung ausschließen"
++
++#: menuautotimer.c:104
++msgid "Priority"
++msgstr ""
++
++#: menuautotimer.c:105
++msgid "Lifetime"
++msgstr ""
++
++#: menuautotimer.c:144
++msgid "Error$Missing search text!"
++msgstr "Suchtext fehlt"
++
++#: menuautotimer.c:152
++msgid "*** Invalid Channel ***"
++msgstr ""
++
++#: menuautotimer.c:156
++msgid "Edit$Search text to small - use anyway?"
++msgstr "Suchtext ist zu kurz - trotzdem verwenden?"
++
++#: menuautotimer.c:232 menudictionary.c:156
++msgid "Edit$Input"
++msgstr "Eingabe"
++
++#: menuautotimer.c:234 menudictionary.c:158
++msgid "Edit$Select"
++msgstr "Auswahl"
++
++#: menuautotimer.c:277
++msgid "Display1$T"
++msgstr "T"
++
++#: menuautotimer.c:278
++msgid "Display2$S"
++msgstr "U"
++
++#: menuautotimer.c:279
++msgid "Display3$D"
++msgstr "B"
++
++#: menuautotimer.c:280
++msgid "Display4$R"
++msgstr "W"
++
++#: menuautotimer.c:281
++msgid "Display5$W"
++msgstr "T"
++
++#: menuautotimer.c:313
++msgid "Display$AutoTimers"
++msgstr "Autotimer"
++
++#: menuautotimer.c:351 menudictionary.c:228
++msgid "Delete"
++msgstr ""
++
++#: menuautotimer.c:351 menudictionary.c:228
++msgid "Edit"
++msgstr ""
++
++#: menuautotimer.c:351 menuautotimer.c:353 menudictionary.c:228
++#: menudictionary.c:230
++msgid "New"
++msgstr ""
++
++#: menuautotimer.c:351 menudictionary.c:228
++msgid "On/Off"
++msgstr ""
++
++#: menuautotimer.c:384
++msgid "Edit$Delete Autotimer?"
++msgstr "Autotimer löschen?"
++
++#: menuautotimer.c:442 menuautotimer.c:446
++msgid "Edit$Force search update manual now ..."
++msgstr "Sofort jetzt neue Suche durchführen ..."
++
++#: menuautotimer.c:517
++msgid "Edit$Start search update now?"
++msgstr "Suchupdate jetzt starten?"
++
++#: menudictionary.c:17
++msgid "Edit$Edit DefaultDictionary"
++msgstr "Auswahlverzeichnisse bearbeiten"
++
++#: menudictionary.c:50
++msgid "Choise$hidden"
++msgstr "versteckt"
++
++#: menudictionary.c:50
++msgid "Choise$shown"
++msgstr "angezeigt"
++
++#: menudictionary.c:50
++msgid "Edit$Entrytyp"
++msgstr "Eintragstyp"
++
++#: menudictionary.c:52
++msgid "Edit$Include Subdictionarys"
++msgstr "Unterverzeichnisse einschließen"
++
++#: menudictionary.c:97
++msgid "Error$Missing dictionary!"
++msgstr "Verzeichnis fehlt!"
++
++#: menudictionary.c:208
++msgid "Display$DefaultDictionary"
++msgstr "Auswahlverzeichnisse"
++
++#: menudictionary.c:261
++msgid "Edit$Delete Default Dictionary?"
++msgstr "Auswahlverzeichnis löschen?"
++
++#: menusetup.c:182
++msgid "Setup$Edit Autotimer now"
++msgstr "Autotimer jetzt bearbeiten"
++
++#: menusetup.c:184
++msgid "Setup$Preferr Command Line Parameter"
++msgstr "Kommandozeile hat Vorrang"
++
++#: menusetup.c:187
++msgid "Setup$Path for vdradmind.at"
++msgstr "Pfad zur vdradmind.at"
++
++#: menusetup.c:190
++msgid "Setup$minimum search text length"
++msgstr "minimale Länge des Suchtextes"
++
++#: menusetup.c:192
++msgid "Setup$Except repeat Feature (bigpatch 0.9)"
++msgstr "Wiederholungsausschluß (BigPatch)"
++
++#: menusetup.c:194
++msgid "Setup$Autotimer with weekdays (am 3.4.1)"
++msgstr "Autotimer mit Wochentag (am 3.4.1)"
++
++#: menusetup.c:196
++msgid "Setup$Visible in Mainmenu"
++msgstr "Im Hauptmenü sichtbar"
++
++#: menusetup.c:198
++msgid "Setup$  Name for Mainmenu"
++msgstr "  Eintragname im Hauptmenü"
++
++#: menusetup.c:200
++msgid "Setup$Verbose Log Mode"
++msgstr "Ausführliche Protokollierung"
++
++#: menusetup.c:203
++msgid "Setup$Setup List Format"
++msgstr "Listenformat ändern"
++
++#: menusetup.c:206
++msgid "Setup$  Show Flags"
++msgstr "  Anzeige der Suchorte"
++
++#: menusetup.c:208
++msgid "Setup$  Show Channel"
++msgstr "  Anzeige Kanal"
++
++#: menusetup.c:210
++msgid "Setup$    Use Channelname"
++msgstr "    Kanalnamen verwenden"
++
++#: menusetup.c:212
++msgid "Setup$  Show start/stop Time"
++msgstr "  Anzeige Start-/Stopzeit"
++
++#: menusetup.c:216
++msgid "Setup$Configure default dictionary"
++msgstr "Auswahlverzeichnisse einstellen"
++
++#: menusetup.c:220 menusetup.c:224
++msgid "Setup$*Default dictionary from records"
++msgstr "*Auswahlverzeichnisse von Aufnahmen"
++
++#: menusetup.c:230 menusetup.c:234
++msgid "Setup$  *Sources for default dictionary ..."
++msgstr "  *Quelle für Auswahlverzeichnisse ..."
++
++#: menusetup.c:236
++msgid "Setup$  ... Records"
++msgstr "  ... Aufnahmen"
++
++#: menusetup.c:244
++msgid "Setup$    Time for update records"
++msgstr "    Aktualisierung der Liste"
++
++#: menusetup.c:244
++msgid "Setup$  Time for update records"
++msgstr "  Aktualisierung der Liste"
++
++#: menusetup.c:250
++msgid "Setup$    Time for update records (hour)"
++msgstr "    Stunden für Aktualisierung Liste"
++
++#: menusetup.c:254
++msgid "Setup$  ... Autotimers"
++msgstr "  ... Autotimer"
++
++#: menusetup.c:255
++msgid "Setup$  ... Timers"
++msgstr "  ... Timer"
++
++#: menusetup.c:256
++msgid "Setup$  ... Commandline"
++msgstr "  ... Komandozeile"
++
++#: menusetup.c:257
++msgid "Setup$  ... Setup list"
++msgstr "  ... Setup-Liste"
++
++#: menusetup.c:261
++msgid "Setup$Method for manual search update"
++msgstr "Methode für Aktualisierungssuche"
++
++#: menusetup.c:264
++msgid "Setup$  Path for config file"
++msgstr "  Updatekonfigurationdatei"
++
++#: menusetup.c:268
++msgid "Setup$  Path for update script"
++msgstr "  Update-Script"
++
++#: menusetup.c:271
++msgid "Setup$  Updateline position"
++msgstr "  Position für Aktualisierungszeile"
++
++#: menusetup.c:273
++msgid "Setup$    Display bottom update ex lines"
++msgstr "    Untere Zeile ab x Einträgen"
++
++#: menusetup.c:275
++msgid "Setup$  After change force new search"
++msgstr "  Nach Änderungen manuelle Suche"
++
++#: menusetup.c:277
++msgid "Setup$Now force search update"
++msgstr "Sofort neue Suche durchführen"
++
++#: menusetup.c:279
++msgid "Setup$Modify dictionarys list"
++msgstr "Verzeichnissliste bearbeiten"
++
++#: menusetup.c:287 menusetup.c:297
++msgid ""
++"Setup$For this plugin is vdradmind or xxv requiered!\n"
++"In the config of vdradmind must the autotimer-function be enabled."
++msgstr "Verzeichnissliste bearbeiten"
++
++#: menusetup.c:410
++msgid "Setup$Remove extensions from file?"
++msgstr "Erweiterung(en) aus Datei löschen?"
+Index: autotimeredit-0.1.8/po/fr_FR.po
+===================================================================
+--- autotimeredit-0.1.8/po/fr_FR.po
++++ autotimeredit-0.1.8/po/fr_FR.po	2008-04-25 14:13:18.000000000 +0300
+@@ -0,0 +1,443 @@
++# VDR autotimeredit plugin language source file.
++# Copyright (C) YEAR THE VDR-autotimeredit'S COPYRIGHT HOLDER
++# This file is distributed under the same license as the VDR-autotimeredit package.
++# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
++#
++msgid ""
++msgstr ""
++"Project-Id-Version: VDR-autotimeredit\n"
++"Report-Msgid-Bugs-To: http://qa.mandriva.com/\n"
++"POT-Creation-Date: 2008-04-16 14:00+0300\n"
++"PO-Revision-Date: 2008-04-16 14:00+0300\n"
++"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
++"Language-Team: <vdr@linuxtv.org>\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=ISO-8859-1\n"
++"Content-Transfer-Encoding: 8bit\n"
++
++#: autotimeredit.c:23
++msgid "OSD autotimer edit"
++msgstr "Traiter l'autoprogrammation"
++
++#: autotimeredit.c:364
++msgid "no"
++msgstr ""
++
++#: autotimeredit.c:365
++msgid "yes"
++msgstr ""
++
++#: autotimeredit.c:366
++msgid "Choise$single"
++msgstr ""
++
++#: autotimeredit.c:367 autotimeredit.c:371 autotimeredit.c:375
++msgid "Choise$none"
++msgstr "pas de"
++
++#: autotimeredit.c:368
++msgid "Choise$start Time"
++msgstr "heures de dï¿½part"
++
++#: autotimeredit.c:369
++msgid "Choise$stop Time"
++msgstr "heures de fin"
++
++#: autotimeredit.c:370
++msgid "Choise$both Times"
++msgstr "les deux temps"
++
++#: autotimeredit.c:372
++msgid "Choise$top"
++msgstr "en haut"
++
++#: autotimeredit.c:373
++msgid "Choise$bottom"
++msgstr "en bas"
++
++#: autotimeredit.c:374
++msgid "Choise$top and bottom"
++msgstr "en haut et en bas"
++
++#: autotimeredit.c:376
++msgid "Choise$webpage"
++msgstr "page internet"
++
++#: autotimeredit.c:377
++msgid "Choise$restart script"
++msgstr "redï¿½marrage"
++
++#: autotimeredit.c:378
++msgid "Choise$vdradmind sighup"
++msgstr "vdradmind signal HUP"
++
++#: autotimeredit.c:379
++msgid "Choise$xxv sighup"
++msgstr "xxv signal HUP"
++
++#: autotimeredit.c:380
++msgid "Choise$never"
++msgstr "jamais"
++
++#: autotimeredit.c:381
++msgid "Choise$question"
++msgstr "aprï¿½s la question"
++
++#: autotimeredit.c:382 autotimeredit.c:384
++msgid "Choise$always"
++msgstr "toujours"
++
++#: autotimeredit.c:383
++msgid "Choise$only start"
++msgstr "seulement au dï¿½marrage"
++
++#: autotimers.c:374
++msgid "Error$no access to config file"
++msgstr "pas d'accï¿½s au fichier de configuration"
++
++#: autotimers.c:381
++msgid "Error$Not all requied parameters in config file found"
++msgstr "Des paramï¿½tres manquant dans le fichier"
++
++#: autotimers.c:390
++msgid "Error$no access to update script"
++msgstr "pas d'accï¿½s au fichier-scripts pour mise ï¿½ jour"
++
++#: autotimers.c:397
++msgid "Error$update script is not executable"
++msgstr "lie scrit de mise ï¿½ jour n'est pas exï¿½cutable"
++
++#: autotimers.c:405 menusetup.c:338
++msgid "Error$vdradmind is not running on this machine"
++msgstr "vdradmind ne tourne pas sur cette machine"
++
++#: autotimers.c:413 menusetup.c:340
++msgid "Error$xxv is not running on this machine"
++msgstr "xxv ne tourne pas sur cette machine"
++
++#: autotimers.c:433
++msgid "Error$search update is runing"
++msgstr "la mise ï¿½ jour de recherche est dï¿½jï¿½ en court"
++
++#: autotimers.c:441
++msgid "Edit$Start search update now ..."
++msgstr "la mise ï¿½ jour de recherche est lancï¿½e ..."
++
++#: menuautotimer.c:32
++msgid "Edit$Edit Autotimer"
++msgstr "Traiter l'autoprogammeur"
++
++#: menuautotimer.c:77
++msgid "Channel"
++msgstr ""
++
++#: menuautotimer.c:79 menuautotimer.c:81
++msgid "Active"
++msgstr ""
++
++#: menuautotimer.c:82
++msgid "Edit$Search Text"
++msgstr "texte de recherche"
++
++#: menuautotimer.c:83
++msgid "Edit$Search in Title"
++msgstr "recherche dans le titre"
++
++#: menuautotimer.c:84
++msgid "Edit$Search in Subtitle"
++msgstr "recherche dans le sous-titre"
++
++#: menuautotimer.c:85
++msgid "Edit$Search in Description"
++msgstr "recherche dans la description"
++
++#: menuautotimer.c:87
++msgid "Edit$Weekdays for search"
++msgstr ""
++
++#: menuautotimer.c:88
++msgid "Edit$Use start/stop Time"
++msgstr "l'utilisation dï¿½marrage/fin"
++
++#: menuautotimer.c:90
++msgid "Edit$  Search start Time"
++msgstr "  Heure de dï¿½marrage de la recherche"
++
++#: menuautotimer.c:92
++msgid "Edit$  Search stop Time"
++msgstr "  Heure final de la recherche"
++
++#: menuautotimer.c:93
++msgid "Edit$Use Channel select"
++msgstr "utiliser le choix d'ï¿½metteur"
++
++#: menuautotimer.c:98 menudictionary.c:55
++msgid "Edit$Dictionary for Record <>"
++msgstr "la liste pour l'enregistrement <>"
++
++#: menuautotimer.c:100 menudictionary.c:57
++msgid "Edit$Dictionary for Record"
++msgstr "la liste pour l'enregistrement"
++
++#: menuautotimer.c:101
++msgid "Edit$Episode record"
++msgstr "enregistrement de sï¿½ries"
++
++#: menuautotimer.c:103
++msgid "Edit$Except repeat"
++msgstr "exclure les rï¿½pï¿½titions"
++
++#: menuautotimer.c:104
++msgid "Priority"
++msgstr ""
++
++#: menuautotimer.c:105
++msgid "Lifetime"
++msgstr ""
++
++#: menuautotimer.c:144
++msgid "Error$Missing search text!"
++msgstr "le texte de recherche est absent"
++
++#: menuautotimer.c:152
++msgid "*** Invalid Channel ***"
++msgstr ""
++
++#: menuautotimer.c:156
++msgid "Edit$Search text to small - use anyway?"
++msgstr "texte de recherche est trop court - l'utiliser malgrï¿½ tout?"
++
++#: menuautotimer.c:232 menudictionary.c:156
++msgid "Edit$Input"
++msgstr "Entrï¿½"
++
++#: menuautotimer.c:234 menudictionary.c:158
++msgid "Edit$Select"
++msgstr "le choix"
++
++#: menuautotimer.c:277
++msgid "Display1$T"
++msgstr "T"
++
++#: menuautotimer.c:278
++msgid "Display2$S"
++msgstr "S"
++
++#: menuautotimer.c:279
++msgid "Display3$D"
++msgstr "D"
++
++#: menuautotimer.c:280
++msgid "Display4$R"
++msgstr "R"
++
++#: menuautotimer.c:281
++msgid "Display5$W"
++msgstr ""
++
++#: menuautotimer.c:313
++msgid "Display$AutoTimers"
++msgstr "Autoprogrammeur"
++
++#: menuautotimer.c:351 menudictionary.c:228
++msgid "Delete"
++msgstr ""
++
++#: menuautotimer.c:351 menudictionary.c:228
++msgid "Edit"
++msgstr ""
++
++#: menuautotimer.c:351 menuautotimer.c:353 menudictionary.c:228
++#: menudictionary.c:230
++msgid "New"
++msgstr ""
++
++#: menuautotimer.c:351 menudictionary.c:228
++msgid "On/Off"
++msgstr ""
++
++#: menuautotimer.c:384
++msgid "Edit$Delete Autotimer?"
++msgstr "effacer l'autoprogrammeur?"
++
++#: menuautotimer.c:442 menuautotimer.c:446
++msgid "Edit$Force search update manual now ..."
++msgstr "exï¿½cuter une recherche tout de suite ..."
++
++#: menuautotimer.c:517
++msgid "Edit$Start search update now?"
++msgstr "commencer la mise ï¿½ jour de recherche maintenant?"
++
++#: menudictionary.c:17
++msgid "Edit$Edit DefaultDictionary"
++msgstr "traiter liste de choix"
++
++#: menudictionary.c:50
++msgid "Choise$hidden"
++msgstr "cachï¿½"
++
++#: menudictionary.c:50
++msgid "Choise$shown"
++msgstr "affichï¿½"
++
++#: menudictionary.c:50
++msgid "Edit$Entrytyp"
++msgstr "type d'inscription"
++
++#: menudictionary.c:52
++msgid "Edit$Include Subdictionarys"
++msgstr "Inclure sous-listes"
++
++#: menudictionary.c:97
++msgid "Error$Missing dictionary!"
++msgstr "la liste est absente!"
++
++#: menudictionary.c:208
++msgid "Display$DefaultDictionary"
++msgstr "listes de choix"
++
++#: menudictionary.c:261
++msgid "Edit$Delete Default Dictionary?"
++msgstr "effacer la liste de choix?"
++
++#: menusetup.c:182
++msgid "Setup$Edit Autotimer now"
++msgstr "Traiter l'autoprogrammeur maintenant"
++
++#: menusetup.c:184
++msgid "Setup$Preferr Command Line Parameter"
++msgstr "ligne de commande est prioritaire"
++
++#: menusetup.c:187
++msgid "Setup$Path for vdradmind.at"
++msgstr "chemin de vdradmind.at"
++
++#: menusetup.c:190
++msgid "Setup$minimum search text length"
++msgstr "longueur minimale du texte de recherche"
++
++#: menusetup.c:192
++msgid "Setup$Except repeat Feature (bigpatch 0.9)"
++msgstr "exclusion de rï¿½pï¿½tition (BigPatch)"
++
++#: menusetup.c:194
++msgid "Setup$Autotimer with weekdays (am 3.4.1)"
++msgstr ""
++
++#: menusetup.c:196
++msgid "Setup$Visible in Mainmenu"
++msgstr "Visible dans le menu principal"
++
++#: menusetup.c:198
++msgid "Setup$  Name for Mainmenu"
++msgstr "  nom dans le menu principal"
++
++#: menusetup.c:200
++msgid "Setup$Verbose Log Mode"
++msgstr "enregistrement dï¿½taillï¿½ du protocole"
++
++#: menusetup.c:203
++msgid "Setup$Setup List Format"
++msgstr "modifier le format de liste"
++
++#: menusetup.c:206
++msgid "Setup$  Show Flags"
++msgstr "  affichage du chemin de recherche"
++
++#: menusetup.c:208
++msgid "Setup$  Show Channel"
++msgstr "  affichage de la chaï¿½ne"
++
++#: menusetup.c:210
++msgid "Setup$    Use Channelname"
++msgstr "    utiliser nom de canal"
++
++#: menusetup.c:212
++msgid "Setup$  Show start/stop Time"
++msgstr "  affichage de l'heure de dï¿½part/fin"
++
++#: menusetup.c:216
++msgid "Setup$Configure default dictionary"
++msgstr "Changer la liste de choix"
++
++#: menusetup.c:220 menusetup.c:224
++msgid "Setup$*Default dictionary from records"
++msgstr "les listes de choix d'enregistrement"
++
++#: menusetup.c:230 menusetup.c:234
++msgid "Setup$  *Sources for default dictionary ..."
++msgstr "  Source pour la listes de choix par dï¿½faut ï¿½"
++
++#: menusetup.c:236
++msgid "Setup$  ... Records"
++msgstr "  ï¿½ enregistrements"
++
++#: menusetup.c:244
++msgid "Setup$    Time for update records"
++msgstr "    mise ï¿½ jour de la liste"
++
++#: menusetup.c:244
++msgid "Setup$  Time for update records"
++msgstr "  mise ï¿½ jour de la liste"
++
++#: menusetup.c:250
++msgid "Setup$    Time for update records (hour)"
++msgstr "    heures pour la mise ï¿½ jour de la liste"
++
++#: menusetup.c:254
++msgid "Setup$  ... Autotimers"
++msgstr "  ï¿½ autoprogrammeur"
++
++#: menusetup.c:255
++msgid "Setup$  ... Timers"
++msgstr "  ï¿½ Timers"
++
++#: menusetup.c:256
++msgid "Setup$  ... Commandline"
++msgstr "  ï¿½ ligne de commande"
++
++#: menusetup.c:257
++msgid "Setup$  ... Setup list"
++msgstr "  ï¿½ liste de configuration"
++
++#: menusetup.c:261
++msgid "Setup$Method for manual search update"
++msgstr "mï¿½thode de recherche pour la mise ï¿½ jour"
++
++#: menusetup.c:264
++msgid "Setup$  Path for config file"
++msgstr "  fichier de configuration de mise ï¿½ jour"
++
++#: menusetup.c:268
++msgid "Setup$  Path for update script"
++msgstr "  chemin du scripte de mise ï¿½ jour"
++
++#: menusetup.c:271
++msgid "Setup$  Updateline position"
++msgstr "  position pour ligne de mise ï¿½ jour"
++
++#: menusetup.c:273
++msgid "Setup$    Display bottom update ex lines"
++msgstr "    ligne infï¿½rieure ï¿½ partir x entrï¿½es"
++
++#: menusetup.c:275
++msgid "Setup$  After change force new search"
++msgstr "  aprï¿½s modification recherche manuelle"
++
++#: menusetup.c:277
++msgid "Setup$Now force search update"
++msgstr "exï¿½cuter nouvelle recherche tout de suite"
++
++#: menusetup.c:279
++msgid "Setup$Modify dictionarys list"
++msgstr "Traiter la liste"
++
++#: menusetup.c:287 menusetup.c:297
++msgid ""
++"Setup$For this plugin is vdradmind or xxv requiered!\n"
++"In the config of vdradmind must the autotimer-function be enabled."
++msgstr "Traiter la liste"
++
++#: menusetup.c:410
++msgid "Setup$Remove extensions from file?"
++msgstr ""

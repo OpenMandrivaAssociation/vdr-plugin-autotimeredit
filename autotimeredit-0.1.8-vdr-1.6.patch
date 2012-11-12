@@ -1,0 +1,21 @@
+diff -N'urpx*~' autotimeredit-0.1.8/autotimeredit.c autotimeredit-0.1.8-o/autotimeredit.c
+--- autotimeredit-0.1.8/autotimeredit.c	2005-11-07 17:47:18.000000000 +0200
++++ autotimeredit-0.1.8-o/autotimeredit.c	2008-04-25 14:19:57.000000000 +0300
+@@ -308,7 +308,7 @@ class cPluginAutoTimer : public cPlugin
+ {
+ private:
+   // Add any member variables or functions you may need here.
+-  int OSDLanguage;
++  void *OSDLanguage;
+   void TestAndSetOSDLanguage(void);
+   bool ProcessArg(int argc, char *argv[]);
+ public:
+@@ -336,7 +336,7 @@ cPluginAutoTimer::cPluginAutoTimer(void)
+   // Initialize any member variables here.
+   // DON'T DO ANYTHING ELSE THAT MAY HAVE SIDE EFFECTS, REQUIRE GLOBAL
+   // VDR OBJECTS TO EXIST OR PRODUCE ANY OUTPUT!
+-  OSDLanguage = -1;
++  OSDLanguage = NULL;
+   int i;
+   for (i = 1; i < MaxDefaultDictionary; i++)
+     SetupDefaultDictionarys.Add(new cDefaultDictionary("", 0));
