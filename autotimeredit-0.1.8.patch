@@ -1,0 +1,52 @@
+diff -ruN VDR.org/PLUGINS/src/autotimeredit-0.1.8/menuautotimer.c VDR/PLUGINS/src/autotimeredit-0.1.8/menuautotimer.c
+--- VDR.org/PLUGINS/src/autotimeredit-0.1.8/menuautotimer.c	2006-01-11 12:36:05.000000000 +0100
++++ VDR/PLUGINS/src/autotimeredit-0.1.8/menuautotimer.c	2006-01-11 12:39:03.000000000 +0100
+@@ -80,9 +80,15 @@
+   else
+     Add(new cMenuEditBoolItem(tr("Active"),                        &data.active));
+   Add(new cMenuEditStrItem(tr("Edit$Search Text"),                 data.search, sizeof(data.search), tr(FileNameChars)));
++#if VDRVERSNUM >= 10338
++  Add(new cMenuEditBitItem(tr("Edit$Search in Title"),             (uint *)&data.options, 0x01));
++  Add(new cMenuEditBitItem(tr("Edit$Search in Subtitle"),          (uint *)&data.options, 0x02));
++  Add(new cMenuEditBitItem(tr("Edit$Search in Description"),       (uint *)&data.options, 0x04));
++#else
+   Add(new cMenuEditBitItem(tr("Edit$Search in Title"),             &data.options, 0x01));
+   Add(new cMenuEditBitItem(tr("Edit$Search in Subtitle"),          &data.options, 0x02));
+   Add(new cMenuEditBitItem(tr("Edit$Search in Description"),       &data.options, 0x04));
++#endif
+   if (use_weekdays.u)
+     Add(new cMenuEditWeekDaysItem(tr("Edit$Weekdays for search"),  &selWeekdays));
+   Add(new cMenuEditStraItem(tr("Edit$Use start/stop Time"),        &selStartStopTime, 4, StartStopTime));
+diff -ruN VDR.org/PLUGINS/src/autotimeredit-0.1.8/menusetup.c VDR/PLUGINS/src/autotimeredit-0.1.8/menusetup.c
+--- VDR.org/PLUGINS/src/autotimeredit-0.1.8/menusetup.c	2006-01-11 12:36:05.000000000 +0100
++++ VDR/PLUGINS/src/autotimeredit-0.1.8/menusetup.c	2006-01-11 12:42:09.000000000 +0100
+@@ -233,7 +233,11 @@
+ #else
+       Add(new cOsdItem(tr("Setup$  *Sources for default dictionary ..."),                osUser9));
+ #endif
++#if VDRVERSNUM >= 10338
++      Add(new cMenuEditBitItem(tr("Setup$  ... Records"),                                (uint *)&use_defaultdictionary.u, Source_Records));
++#else
+       Add(new cMenuEditBitItem(tr("Setup$  ... Records"),                                &use_defaultdictionary.u, Source_Records));
++#endif
+     }
+     if (DisplayLine(updatetimerecords) && (use_defaultdictionary.u & Source_Records)) {
+       if (updatetimerecords.u < (display_int ? 1 : 2)) {
+@@ -251,10 +255,17 @@
+       }
+     }
+     if (display_defaultdictionary) {
++#if VDRVERSNUM >= 10338
++      Add(new cMenuEditBitItem(tr("Setup$  ... Autotimers"),                             (uint *)&use_defaultdictionary.u, Source_AutoTimers));
++      Add(new cMenuEditBitItem(tr("Setup$  ... Timers"),                                 (uint *)&use_defaultdictionary.u, Source_Timers));
++      Add(new cMenuEditBitItem(tr("Setup$  ... Commandline"),                            (uint *)&use_defaultdictionary.u, Source_Commandline));
++      Add(new cMenuEditBitItem(tr("Setup$  ... Setup list"),                             (uint *)&use_defaultdictionary.u, Source_Setup));
++#else
+       Add(new cMenuEditBitItem(tr("Setup$  ... Autotimers"),                             &use_defaultdictionary.u, Source_AutoTimers));
+       Add(new cMenuEditBitItem(tr("Setup$  ... Timers"),                                 &use_defaultdictionary.u, Source_Timers));
+       Add(new cMenuEditBitItem(tr("Setup$  ... Commandline"),                            &use_defaultdictionary.u, Source_Commandline));
+       Add(new cMenuEditBitItem(tr("Setup$  ... Setup list"),                             &use_defaultdictionary.u, Source_Setup));
++#endif
+     }
+   }
+   if (DisplayLine(updatemethod))
