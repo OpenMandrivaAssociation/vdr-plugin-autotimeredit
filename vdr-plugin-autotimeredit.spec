@@ -1,16 +1,12 @@
-
 %define plugin	autotimeredit
-%define name	vdr-plugin-%plugin
-%define version	0.1.8
-%define rel	18
 
 # backportability
 %define _localstatedir %{_var}
 
 Summary:	VDR plugin: OSD autotimer edit
-Name:		%name
-Version:	%version
-Release:	%mkrel %rel
+Name:		vdr-plugin-%plugin
+Version:	0.1.8
+Release:	19
 Group:		Video
 License:	GPL
 URL:		http://www.fast-info.de/vdr/autotimeredit/
@@ -19,7 +15,6 @@ Patch1:		http://gentoo.fh-luh.de/files/vdr-autotimeredit/autotimeredit-0.1.8.pat
 Patch2:		92_autotimeredit-0.1.8-1.5.3.dpatch
 Patch3:		autotimeredit-0.1.8-i18n-1.6.patch
 Patch4:		autotimeredit-0.1.8-vdr-1.6.patch
-BuildRoot:	%{_tmppath}/%{name}-buildroot
 BuildRequires:	vdr-devel >= 1.6.0
 Requires:	vdr-abi = %vdr_abi
 
@@ -183,17 +178,7 @@ param="@MORE_OPTIONS_FILE"
 %vdr_plugin_build
 
 %install
-rm -rf %{buildroot}
 %vdr_plugin_install
-
-%clean
-rm -rf %{buildroot}
-
-%post
-%vdr_plugin_post %plugin
-
-%postun
-%vdr_plugin_postun %plugin
 
 %files -f %plugin.vdr
 %defattr(-,root,root)
