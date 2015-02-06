@@ -6,7 +6,7 @@
 Summary:	VDR plugin: OSD autotimer edit
 Name:		vdr-plugin-%plugin
 Version:	0.1.8
-Release:	19
+Release:	20
 Group:		Video
 License:	GPL
 URL:		http://www.fast-info.de/vdr/autotimeredit/
