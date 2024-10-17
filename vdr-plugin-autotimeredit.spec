@@ -9,7 +9,7 @@ Version:	0.1.8
 Release:	21
 Group:		Video
 License:	GPL
-URL:		http://www.fast-info.de/vdr/autotimeredit/
+URL:		https://www.fast-info.de/vdr/autotimeredit/
 Source:		http://www.fast-info.de/vdr/autotimeredit/vdr-%plugin-%version.tar.bz2
 Patch1:		http://gentoo.fh-luh.de/files/vdr-autotimeredit/autotimeredit-0.1.8.patch
 Patch2:		92_autotimeredit-0.1.8-1.5.3.dpatch
